@@ -1,5 +1,7 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useState } from 'react';
 import StudentLayout from '@/components/layouts/StudentLayout';
 import { Button } from '@/components/ui/Button';
