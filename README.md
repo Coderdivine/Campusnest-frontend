@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CampusNest - UNN Accommodation System
 
-## Getting Started
+A modern web application connecting University of Nigeria Nsukka (UNN) students with verified landlords for seamless accommodation booking.
 
-First, run the development server:
+## 🚀 Features
+
+### For Students
+- **Browse Lodges**: Filter and search accommodations by area, price, and distance from UNN
+- **Secure Booking**: Book lodges with secure Paystack payment integration
+- **Inspection Process**: Physical inspection before fund release
+- **Refund Option**: Request refund if lodge doesn't meet expectations
+- **Dashboard**: Track all bookings and their statuses
+- **Direct Contact**: Call or WhatsApp landlords directly
+
+### For Landlords
+- **List Properties**: Create detailed listings with photos, videos, and descriptions
+- **Manage Listings**: Edit, activate, or close listings anytime
+- **View Bookings**: Track all student bookings and payment statuses
+- **Secure Payments**: Receive funds only after student inspection approval
+- **Dashboard**: Monitor all listings and revenue
+
+## 🛠️ Technology Stack
+
+- **Framework**: Next.js 16 with React 19
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **Icons**: Lucide React
+- **HTTP Client**: Axios
+
+## 🚦 Getting Started
+
+### Installation
+
+```bash
+npm install
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🎯 Demo Credentials
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Student Account
+- **Email**: chidinma.okafor@unn.edu.ng
+- **Password**: Any password
 
-## Learn More
+### Landlord Account
+- **Email**: chukwuma.eze@gmail.com
+- **Password**: Any password
 
-To learn more about Next.js, take a look at the following resources:
+## 📍 Top 7 UNN Areas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Odenigwe
+2. Hilltop
+3. Green House
+4. Abuja Building Area
+5. Faculty of Arts Area
+6. Onuiyi
+7. Zik's Flats Area
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔐 Payment Flow
 
-## Deploy on Vercel
+1. Student books lodge through Paystack
+2. Funds held in escrow
+3. Student inspects lodge physically
+4. Student approves → Funds released to landlord
+5. Student rejects → Refund processed
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📚 Key Pages
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `/` - Welcome page
+- `/login` - User login
+- `/student/signup` - Student registration
+- `/student/dashboard` - Student dashboard
+- `/student/browse` - Browse lodges
+- `/student/bookings` - Manage bookings
+- `/landlord/signup` - Landlord registration
+- `/landlord/dashboard` - Landlord dashboard
+- `/landlord/listings` - Manage listings
+- `/landlord/create-listing` - Create new listing
+
+## 📱 Design System
+
+- **Font**: Plus Jakarta Sans
+- **Colors**: Black & White with gray accents
+- **Layout**: Responsive mobile-first design
+- **Components**: Modern, accessible UI components
+
+---
+
+Built with ❤️ for UNN students
