@@ -3,7 +3,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, FileText, PlusCircle, LogOut, User, Menu, MoreHorizontal } from 'lucide-react';
+import { Home, FileText, PlusCircle, LogOut, User, Menu, MoreHorizontal, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -116,6 +116,13 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
               Actions
             </p>
             <div className="space-y-1">
+              <Link
+                href="/landlord/support"
+                className="w-full group flex items-center px-4 py-3 text-sm font-semibold rounded-xl text-gray-700 hover:bg-gray-100 transition-all"
+              >
+                <HelpCircle className="mr-3 h-5 w-5" />
+                Contact Support
+              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full group flex items-center px-4 py-3 text-sm font-semibold rounded-xl text-gray-700 hover:bg-gray-100 transition-all"
@@ -195,6 +202,14 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
               Actions
             </p>
             <div className="space-y-1 mb-6">
+              <Link
+                href="/landlord/support"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center px-4 py-3 text-sm font-semibold rounded-xl text-gray-700"
+              >
+                <HelpCircle className="mr-3 h-5 w-5" />
+                Contact Support
+              </Link>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);

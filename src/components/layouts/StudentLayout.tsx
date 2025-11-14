@@ -83,12 +83,13 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
               ACTIONS
             </p>
             <div className="space-y-1">
-              <button
+              <Link
+                href="/student/support"
                 className="w-full group flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 transition-all"
               >
                 <HelpCircle className="mr-3 h-5 w-5" />
                 Contact Support
-              </button>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full group flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-100 transition-all"
@@ -166,12 +167,14 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
               ACTIONS
             </p>
             <div className="space-y-1">
-              <button
+              <Link
+                href="/student/support"
+                onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl"
               >
                 <HelpCircle className="mr-3 h-5 w-5" />
                 Contact Support
-              </button>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-xl"
