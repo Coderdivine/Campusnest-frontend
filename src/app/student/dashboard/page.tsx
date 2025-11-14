@@ -3,7 +3,7 @@
 export const runtime = 'edge';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import StudentLayout from '@/components/layouts/StudentLayout';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 
 export default function StudentDashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<Student | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'upcoming' | 'active' | 'past'>('all');
@@ -28,6 +29,9 @@ export default function StudentDashboardPage() {
     phoneNumber: '',
     department: '',
     level: '',
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
   });
   const { notification, showNotification, clearNotification } = useNotification();
 
@@ -50,12 +54,23 @@ export default function StudentDashboardPage() {
       phoneNumber: userData.phoneNumber,
       department: userData.department,
       level: userData.level,
+      bankName: userData.bankName || '',
+      accountNumber: userData.accountNumber || '',
+      accountName: userData.accountName || '',
     });
+
+    // Check if we should open the profile modal (from URL parameter)
+    const openProfile = searchParams.get('openProfile');
+    if (openProfile === 'true') {
+      setIsEditModalOpen(true);
+      // Clean up the URL
+      router.replace('/student/dashboard');
+    }
 
     // Load purchases
     const userPurchases = getStudentPurchases(userData.id);
     setPurchases(userPurchases);
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleEditProfile = () => {
     setIsEditModalOpen(true);
@@ -242,43 +257,119 @@ export default function StudentDashboardPage() {
         title="EDIT PROFILE"
         position="right"
       >
-        <div className="space-y-6">
-          <p className="text-sm text-gray-500">Make changes to your profile.</p>
-          
-          <Input
-            label="Username"
-            value={userHandle}
-            disabled
-            className="bg-gray-50"
-          />
-          <Input
-            label="First Name"
-            value={editForm.fullName.split(' ')[0]}
-            onChange={(e) => {
-              const lastName = editForm.fullName.split(' ')[1] || '';
-              setEditForm(prev => ({ ...prev, fullName: `${e.target.value} ${lastName}`.trim() }));
-            }}
-          />
-          <Input
-            label="Last Name"
-            value={editForm.fullName.split(' ')[1] || ''}
-            onChange={(e) => {
-              const firstName = editForm.fullName.split(' ')[0] || '';
-              setEditForm(prev => ({ ...prev, fullName: `${firstName} ${e.target.value}`.trim() }));
-            }}
-          />
-          <Input
-            label="Phone Number"
-            value={editForm.phoneNumber}
-            onChange={(e) => setEditForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-          />
+        <div className="space-y-8">
+          {/* Personal Information */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">Personal Information</h3>
+            
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Username
+              </label>
+              <input
+                value={userHandle}
+                disabled
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl text-sm text-gray-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Full Name
+              </label>
+              <input
+                value={editForm.fullName}
+                onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                value={editForm.phoneNumber}
+                onChange={(e) => setEditForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Department
+              </label>
+              <input
+                value={editForm.department}
+                onChange={(e) => setEditForm(prev => ({ ...prev, department: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Level
+              </label>
+              <input
+                value={editForm.level}
+                onChange={(e) => setEditForm(prev => ({ ...prev, level: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Bank Details */}
+          <div className="space-y-6 pt-6 border-t border-gray-200">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Bank Details</h3>
+              <p className="text-xs text-gray-600">Required for processing refunds</p>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Bank Name
+              </label>
+              <input
+                value={editForm.bankName}
+                onChange={(e) => setEditForm(prev => ({ ...prev, bankName: e.target.value }))}
+                placeholder="e.g., First Bank Nigeria"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Account Number
+              </label>
+              <input
+                value={editForm.accountNumber}
+                onChange={(e) => setEditForm(prev => ({ ...prev, accountNumber: e.target.value }))}
+                placeholder="10-digit account number"
+                maxLength={10}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-2">
+                Account Name
+              </label>
+              <input
+                value={editForm.accountName}
+                onChange={(e) => setEditForm(prev => ({ ...prev, accountName: e.target.value }))}
+                placeholder="Account holder name"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5 transition-all text-sm"
+              />
+            </div>
+          </div>
+
           <Button
             onClick={handleSaveProfile}
             variant="primary"
             className="w-full rounded-full"
             size="lg"
           >
-            PROCEED
+            SAVE CHANGES
           </Button>
         </div>
       </Modal>

@@ -15,6 +15,9 @@ export interface Student extends User {
   department: string;
   level: string;
   studentIdCard?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountName?: string;
 }
 
 export interface Landlord extends User {
