@@ -42,15 +42,15 @@ export const Modal = ({
   };
 
   const positionStyles = {
-    center: 'items-center justify-center',
-    right: 'items-start justify-end',
+    center: 'items-center justify-center md:items-center md:justify-center items-end',
+    right: 'items-end md:items-start md:justify-end justify-center',
     bottom: 'items-end justify-center',
   };
 
   const contentStyles = 
-    position === 'right' ? 'h-full w-full max-w-md rounded-l-3xl animate-slide-in-right' 
-    : position === 'bottom' ? 'w-full max-w-full rounded-t-3xl animate-slide-in-up'
-    : 'rounded-3xl animate-fade-in';
+    position === 'right' ? 'w-full max-w-md rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none animate-slide-in-up md:animate-slide-in-right md:h-full max-h-[90vh] md:max-h-full' 
+    : position === 'bottom' ? 'w-full max-w-3xl rounded-t-3xl animate-slide-in-up max-h-[90vh]'
+    : 'w-full md:rounded-3xl rounded-t-3xl md:animate-fade-in animate-slide-in-up';
 
   return (
     <div 
@@ -88,16 +88,14 @@ export const Modal = ({
         
         {/* Body */}
         <div className={cn(
-          'overflow-y-auto',
-          position === 'right' ? 'p-8' : 
-          position === 'bottom' ? 'max-h-[85vh] p-8' :
-          'max-h-[80vh] p-8'
+          position === 'right' ? 'h-[calc(90vh-80px)] md:h-[calc(100vh-80px)]' 
+          : position === 'bottom' ? 'max-h-[calc(90vh-80px)]'
+          : 'overflow-y-auto max-h-[85vh] md:max-h-[80vh] p-8'
         )}
-        style={{
-          height: position === 'right' ? 'calc(100vh - 88px)' : undefined
-        }}
         >
-          {children}
+          <div className={position === 'right' || position === 'bottom' ? 'p-8 h-full' : ''}>
+            {children}
+          </div>
         </div>
       </div>
     </div>

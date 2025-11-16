@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Notification, useNotification } from '@/components/ui/Notification';
 import { ID_TYPES } from '@/lib/constants';
+import { authAPI } from '@/utils/auth.api';
 
 export default function LandlordSignupPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function LandlordSignupPage() {
     state: 'Enugu',
     lga: 'Nsukka',
     identificationType: ID_TYPES[0],
+    identificationNumber: '',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,29 +74,34 @@ export default function LandlordSignupPage() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      const newLandlord = {
-        id: `landlord-${Date.now()}`,
+    try {
+      const response = await authAPI.landlordRegister({
         fullName: formData.fullName,
         email: formData.email,
+        password: formData.password,
         phoneNumber: formData.phoneNumber,
-        role: 'landlord' as const,
+        whatsappNumber: formData.whatsappNumber,
         residentialAddress: formData.residentialAddress,
         state: formData.state,
         lga: formData.lga,
         identificationType: formData.identificationType,
-        whatsappNumber: formData.whatsappNumber,
-        isVerified: true, // Auto-verify for demo
-        createdAt: new Date().toISOString(),
-      };
+        identificationNumber: formData.identificationNumber,
+      });
 
-      localStorage.setItem('currentUser', JSON.stringify(newLandlord));
+      // Save auth data
+      authAPI.saveAuth(response.data.token, response.data.user);
+      
       showNotification('success', 'Account created successfully! Redirecting...');
 
       setTimeout(() => {
         router.push('/landlord/dashboard');
       }, 1500);
-    }, 1000);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Registration failed. Please try again.';
+      showNotification('error', errorMessage);
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,7 +109,7 @@ export default function LandlordSignupPage() {
       <div className="mb-8">
         <Link href="/">
           <h1 className="text-3xl md:text-4xl font-bold tracking-[0.3em] text-center cursor-pointer hover:opacity-80 transition-opacity">
-            CAMPUSNEST
+            UNN CAMPUSNEST
           </h1>
         </Link>
       </div>
@@ -200,7 +207,15 @@ export default function LandlordSignupPage() {
               required
             />
 
-            <div />
+            <Input
+              label="Identification Number"
+              type="text"
+              name="identificationNumber"
+              value={formData.identificationNumber}
+              onChange={handleChange}
+              placeholder="Enter ID number"
+              required
+            />
 
             <Input
               label="Password"

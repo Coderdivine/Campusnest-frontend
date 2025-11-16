@@ -8,38 +8,48 @@ import Link from 'next/link';
 import LandlordLayout from '@/components/layouts/LandlordLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { DashboardSkeleton } from '@/components/ui/Skeleton';
 import { Landlord, Listing, Purchase } from '@/types';
-import { getLandlordListings, getLandlordPurchases } from '@/lib/dummyData';
 import { formatCurrency } from '@/lib/utils';
 import { Plus, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts';
+import { listingAPI } from '@/lib/api/listing.api';
+import { purchaseAPI } from '@/lib/api/purchase.api';
 
 export default function LandlordDashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<Landlord | null>(null);
+  const { user, loading: authLoading } = useAuth();
   const [listings, setListings] = useState<Listing[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'pending' | 'released'>('all');
 
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      router.push('/login');
-      return;
+    if (!authLoading) {
+      if (!user || user.role !== 'landlord') {
+        router.push('/login');
+        return;
+      }
+      loadData();
     }
+  }, [user, authLoading, router]);
 
-    const userData = JSON.parse(currentUser) as Landlord;
-    if (userData.role !== 'landlord') {
-      router.push('/login');
-      return;
+  const loadData = async () => {
+    try {
+      const [listingsResponse, purchasesResponse] = await Promise.all([
+        listingAPI.getMyListings(),
+        purchaseAPI.getLandlordPurchases(),
+      ]);
+
+      setListings(listingsResponse.data as Listing[]);
+      setPurchases(purchasesResponse.data as Purchase[]);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    setUser(userData);
-    const userListings = getLandlordListings(userData.id);
-    const userPurchases = getLandlordPurchases(userData.id);
-    setListings(userListings);
-    setPurchases(userPurchases);
-  }, [router]);
+  };
 
   const stats = {
     totalListings: listings.length,
@@ -57,9 +67,18 @@ export default function LandlordDashboardPage() {
     return false;
   });
 
-  if (!user) return null;
+  if (authLoading || !user) return null;
 
-  const userHandle = user.email.split('@')[0];
+  const landlordUser = user as Landlord;
+  const userHandle = landlordUser.email.split('@')[0];
+
+  if (loading) {
+    return (
+      <LandlordLayout>
+        <DashboardSkeleton />
+      </LandlordLayout>
+    );
+  }
 
   return (
     <LandlordLayout>
@@ -240,7 +259,7 @@ export default function LandlordDashboardPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {listings.slice(0, 6).map((listing) => (
-                  <Card key={listing.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={listing.listing_id || listing.id} className="hover:shadow-lg transition-shadow">
                     <CardContent className="pt-4">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-bold text-base line-clamp-1">{listing.lodgeName}</h4>
@@ -261,7 +280,7 @@ export default function LandlordDashboardPage() {
                       </p>
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>{listing.availableSlots} slots</span>
-                        <Link href={`/landlord/listings`}>
+                        <Link href={`/landlord/listings/${listing.listing_id || listing.id}`}>
                           <button className="text-black font-semibold hover:underline">
                             MANAGE →
                           </button>

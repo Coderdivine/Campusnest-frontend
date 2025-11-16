@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Notification, useNotification } from '@/components/ui/Notification';
 import { Landlord } from '@/types';
+import { useAuth } from '@/contexts';
+import { authAPI } from '@/lib/api/auth.api';
 
 interface LandlordLayoutProps {
   children: ReactNode;
@@ -18,9 +20,9 @@ interface LandlordLayoutProps {
 export default function LandlordLayout({ children }: LandlordLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout, updateUser } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [user, setUser] = useState<Landlord | null>(null);
   const [profileForm, setProfileForm] = useState({
     fullName: '',
     phoneNumber: '',
@@ -30,18 +32,16 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
   const { notification, showNotification, clearNotification } = useNotification();
 
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    if (currentUser) {
-      const userData = JSON.parse(currentUser) as Landlord;
-      setUser(userData);
+    if (user && user.role === 'landlord') {
+      const landlordUser = user as Landlord;
       setProfileForm({
-        fullName: userData.fullName,
-        phoneNumber: userData.phoneNumber,
-        residentialAddress: userData.residentialAddress,
-        whatsappNumber: userData.whatsappNumber,
+        fullName: landlordUser.fullName,
+        phoneNumber: landlordUser.phoneNumber,
+        residentialAddress: landlordUser.residentialAddress,
+        whatsappNumber: landlordUser.whatsappNumber,
       });
     }
-  }, []);
+  }, [user]);
 
   const navItems = [
     { href: '/landlord/dashboard', label: 'Home', icon: Home },
@@ -50,24 +50,26 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    router.push('/');
+    logout();
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (user) {
-      const updatedUser = {
-        ...user,
-        ...profileForm,
-      };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      setIsProfileModalOpen(false);
-      showNotification('success', 'Profile updated successfully!');
+      try {
+        const response = await authAPI.updateProfile(profileForm);
+        updateUser(response.data);
+        setIsProfileModalOpen(false);
+        showNotification('success', 'Profile updated successfully!');
+      } catch (error: any) {
+        console.error('Profile update error:', error);
+        const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Failed to update profile';
+        showNotification('error', errorMessage);
+      }
     }
   };
 
-  const userHandle = user?.email.split('@')[0] || 'landlord';
+  const landlordUser = user as Landlord | null;
+  const userHandle = landlordUser?.email.split('@')[0] || 'landlord';
 
   return (
     <div className="min-h-screen bg-white">
@@ -77,7 +79,7 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
           <div className="flex items-center flex-shrink-0 px-6 mb-12">
             <Link href="/landlord/dashboard">
               <h1 className="text-2xl font-bold tracking-[0.2em] cursor-pointer">
-                CAMPUSNEST
+                UNN CAMPUSNEST
               </h1>
             </Link>
           </div>
@@ -157,7 +159,7 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
         </button>
         <div className="flex-1">
           <Link href="/landlord/dashboard">
-            <h1 className="text-xl font-bold tracking-[0.2em]">CAMPUSNEST</h1>
+            <h1 className="text-xl font-bold tracking-[0.2em]">UNN CAMPUSNEST</h1>
           </Link>
         </div>
       </div>
@@ -166,7 +168,7 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-white animate-slide-in-right">
           <div className="flex items-center justify-between p-4 border-b">
-            <h1 className="text-xl font-bold tracking-[0.2em]">CAMPUSNEST</h1>
+            <h1 className="text-xl font-bold tracking-[0.2em]">UNN CAMPUSNEST</h1>
             <button onClick={() => setMobileMenuOpen(false)}>
               <Menu className="h-6 w-6" />
             </button>
@@ -287,7 +289,7 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
               </label>
               <input
                 type="email"
-                value={user?.email || ''}
+                value={landlordUser?.email || ''}
                 disabled
                 className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-base font-medium text-gray-400 cursor-not-allowed"
               />

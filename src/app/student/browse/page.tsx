@@ -2,23 +2,47 @@
 
 export const runtime = 'edge';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import StudentLayout from '@/components/layouts/StudentLayout';
 import { Button } from '@/components/ui/Button';
-import { dummyListings } from '@/lib/dummyData';
+import { BrowseSkeleton } from '@/components/ui/Skeleton';
+import { Listing } from '@/types';
 import { UNN_AREAS } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils';
 import { MapPin, Home, Navigation, Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { listingAPI } from '@/utils/listing.api';
 
 export default function BrowseLodgesPage() {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     area: '',
     maxPrice: '',
     searchQuery: '',
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    loadListings();
+  }, [filters]);
+
+  const loadListings = async () => {
+    setLoading(true);
+    try {
+      const response = await listingAPI.getAll({
+        area: filters.area || undefined,
+        maxPrice: filters.maxPrice ? parseInt(filters.maxPrice) : undefined,
+        searchQuery: filters.searchQuery || undefined,
+      });
+      setListings(response.data as Listing[]);
+    } catch (error) {
+      console.error('Failed to load listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFilters(prev => ({
@@ -27,21 +51,15 @@ export default function BrowseLodgesPage() {
     }));
   };
 
-  const filteredListings = dummyListings.filter(listing => {
-    if (filters.area && listing.area !== filters.area) return false;
-    if (filters.maxPrice && listing.pricePerYear > parseInt(filters.maxPrice)) return false;
-    if (filters.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      return (
-        listing.lodgeName.toLowerCase().includes(query) ||
-        listing.lodgeAddress.toLowerCase().includes(query) ||
-        listing.description.toLowerCase().includes(query)
-      );
-    }
-    return true;
-  });
-
   const hasActiveFilters = filters.area || filters.maxPrice || filters.searchQuery;
+
+  if (loading && listings.length === 0) {
+    return (
+      <StudentLayout>
+        <BrowseSkeleton />
+      </StudentLayout>
+    );
+  }
 
   return (
     <StudentLayout>
@@ -144,7 +162,7 @@ export default function BrowseLodgesPage() {
         {/* Results Summary */}
         <div className="flex items-center justify-between py-2">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
-            {filteredListings.length} {filteredListings.length === 1 ? 'Property' : 'Properties'} Available
+            {loading ? 'Loading...' : `${listings.length} ${listings.length === 1 ? 'Property' : 'Properties'} Available`}
           </p>
           {hasActiveFilters && (
             <button
@@ -157,20 +175,38 @@ export default function BrowseLodgesPage() {
         </div>
 
         {/* Listings Grid */}
-        {filteredListings.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading properties...</p>
+            </div>
+          </div>
+        ) : listings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredListings.map((listing) => (
+            {listings.map((listing: Listing) => (
               <Link 
-                key={listing.id} 
-                href={`/student/lodges/${listing.id}`}
+                key={listing.listing_id || listing.id} 
+                href={`/student/lodges/${listing.listing_id || listing.id}`}
                 className="group"
               >
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all">
                   {/* Image */}
                   <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Home className="h-12 w-12 text-gray-300" />
-                    </div>
+                    {listing.photos && listing.photos.length > 0 ? (
+                      <img
+                        src={listing.photos[0]}
+                        alt={listing.lodgeName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Home className="h-12 w-12 text-gray-300" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}

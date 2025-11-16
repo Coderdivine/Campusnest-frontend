@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Notification, useNotification } from '@/components/ui/Notification';
+import { authAPI } from '@/utils/auth.api';
 
 export default function StudentSignupPage() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function StudentSignupPage() {
     password: '',
     confirmPassword: '',
     phoneNumber: '',
+    registrationNumber: '',
     department: '',
     level: '',
   });
@@ -64,28 +66,31 @@ export default function StudentSignupPage() {
 
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      const newStudent = {
-        id: `student-${Date.now()}`,
+    try {
+      const response = await authAPI.studentRegister({
         fullName: formData.fullName,
         email: formData.email,
+        password: formData.password,
         phoneNumber: formData.phoneNumber,
-        role: 'student' as const,
+        registrationNumber: formData.registrationNumber,
         department: formData.department,
         level: formData.level,
-        isVerified: false,
-        createdAt: new Date().toISOString(),
-      };
+      });
 
-      // Store user data in localStorage
-      localStorage.setItem('currentUser', JSON.stringify(newStudent));
+      // Save auth data
+      authAPI.saveAuth(response.data.token, response.data.user);
+      
       showNotification('success', 'Account created successfully! Redirecting...');
 
       setTimeout(() => {
         router.push('/student/dashboard');
       }, 1500);
-    }, 1000);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Registration failed. Please try again.';
+      showNotification('error', errorMessage);
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,7 +99,7 @@ export default function StudentSignupPage() {
       <div className="mb-8">
         <Link href="/">
           <h1 className="text-3xl md:text-4xl font-bold tracking-[0.3em] text-center cursor-pointer hover:opacity-80 transition-opacity">
-            CAMPUSNEST
+            UNN CAMPUSNEST
           </h1>
         </Link>
       </div>
@@ -141,6 +146,16 @@ export default function StudentSignupPage() {
               onChange={handleChange}
               placeholder="08012345678"
               error={errors.phoneNumber}
+              required
+            />
+
+            <Input
+              label="Registration Number"
+              type="text"
+              name="registrationNumber"
+              value={formData.registrationNumber}
+              onChange={handleChange}
+              placeholder="2021/123456"
               required
             />
 

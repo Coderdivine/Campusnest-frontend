@@ -12,7 +12,7 @@ export default function WelcomePage() {
       {/* Logo */}
       <div className="mb-16 animate-fade-in">
         <h1 className="text-[2.5rem] md:text-6xl font-extrabold tracking-tight text-center">
-          CAMPUSNEST
+          UNN CAMPUSNEST
         </h1>
       </div>
 
@@ -23,19 +23,26 @@ export default function WelcomePage() {
             WELCOME
           </h2>
           <p className="text-gray-500 text-base md:text-lg leading-relaxed px-2">
-            An account allows you to access your dashboard,
-            view bookings, and track your sessions. Or,
-            continue as a guest to explore the basics.
+            Find your perfect lodge or list your property.
+            Create an account to get started.
           </p>
         </div>
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          <Link href="/student/signup" className="block">
-            <Button variant="primary" className="w-full rounded-full" size="lg">
-              CREATE AN ACCOUNT
-            </Button>
-          </Link>
+          <div className="grid grid-cols-2 gap-4">
+            <Link href="/student/signup" className="block">
+              <Button variant="primary" className="w-full rounded-full" size="lg">
+                STUDENT
+              </Button>
+            </Link>
+            
+            <Link href="/landlord/signup" className="block">
+              <Button variant="secondary" className="w-full rounded-full" size="lg">
+                LANDLORD
+              </Button>
+            </Link>
+          </div>
           
           <Link href="/login" className="block">
             <Button variant="secondary" className="w-full rounded-full" size="lg">

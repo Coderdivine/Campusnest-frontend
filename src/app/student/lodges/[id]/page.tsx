@@ -8,70 +8,87 @@ import Link from 'next/link';
 import StudentLayout from '@/components/layouts/StudentLayout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
 import { Notification, useNotification } from '@/components/ui/Notification';
+import PaymentModal from '@/components/ui/PaymentModal';
 import { Listing, Student } from '@/types';
-import { getListingWithLandlord, dummyListings } from '@/lib/dummyData';
-import { formatCurrency, generateBookingRef } from '@/lib/utils';
-import { MapPin, DollarSign, Users, Navigation, ArrowLeft, Phone, MessageCircle, Home } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { MapPin, DollarSign, Users, Navigation, ArrowLeft, Phone, MessageCircle, Home, ChevronLeft, ChevronRight } from 'lucide-react';
+import { authAPI } from '@/lib/api/auth.api';
+import { listingAPI } from '@/lib/api/listing.api';
 
 export default function LodgeDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [listing, setListing] = useState<Listing | null>(null);
   const [user, setUser] = useState<Student | null>(null);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [bookingStep, setBookingStep] = useState<'confirm' | 'payment' | 'success'>('confirm');
-  const [bookingRef, setBookingRef] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { notification, showNotification, clearNotification } = useNotification();
 
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-
-    const userData = JSON.parse(currentUser) as Student;
-    if (userData.role !== 'student') {
-      router.push('/login');
-      return;
-    }
-
-    setUser(userData);
-
-    // Get listing
-    const listingData = dummyListings.find(l => l.id === params.id);
-    if (listingData) {
-      const fullListing = getListingWithLandlord(listingData.id);
-      setListing(fullListing || listingData);
-    }
+    loadData();
   }, [params.id, router]);
 
+  const loadData = async () => {
+    try {
+      const userData = await authAPI.getCurrentUser();
+      if (userData.role !== 'student') {
+        router.push('/login');
+        return;
+      }
+      setUser(userData as Student);
+
+      const response = await listingAPI.getById(params.id as string);
+      setListing(response.data as Listing);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      showNotification('error', 'Failed to load listing details');
+      setTimeout(() => router.push('/student/browse'), 2000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleBookNow = () => {
-    setBookingRef(generateBookingRef());
-    setBookingStep('confirm');
-    setIsBookingModalOpen(true);
+    setIsPaymentModalOpen(true);
   };
 
-  const handleConfirmBooking = () => {
-    setBookingStep('payment');
-  };
-
-  const handleMakePayment = () => {
-    // Simulate payment processing
+  const handlePaymentSuccess = () => {
+    showNotification('success', 'Payment successful! Please inspect the lodge before funds are released.');
     setTimeout(() => {
-      setBookingStep('success');
-      showNotification('success', 'Payment successful! Please inspect the lodge before funds are released.');
+      router.push('/student/bookings');
     }, 2000);
   };
 
-  const handleComplete = () => {
-    setIsBookingModalOpen(false);
-    setTimeout(() => {
-      router.push('/student/bookings');
-    }, 500);
+  const nextImage = () => {
+    if (listing?.photos && listing.photos.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % listing.photos.length);
+    }
   };
+
+  const prevImage = () => {
+    if (listing?.photos && listing.photos.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + listing.photos.length) % listing.photos.length);
+    }
+  };
+
+  const goToImage = (index: number) => {
+    setCurrentImageIndex(index);
+  };
+
+  if (loading) {
+    return (
+      <StudentLayout>
+        <div className="flex justify-center items-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </StudentLayout>
+    );
+  }
 
   if (!listing || !user) return null;
 
@@ -91,10 +108,72 @@ export default function LodgeDetailsPage() {
         </Link>
 
         {/* Image Gallery */}
-        <div className="aspect-video bg-gray-200 rounded-2xl overflow-hidden">
-          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-300 to-gray-400 text-white text-2xl font-bold">
-            {listing.lodgeName}
+        <div className="space-y-4">
+          {/* Main Carousel */}
+          <div className="aspect-video bg-gray-200 rounded-2xl overflow-hidden relative group">
+            {listing.photos && listing.photos.length > 0 ? (
+              <>
+                <img
+                  src={listing.photos[currentImageIndex]}
+                  alt={`${listing.lodgeName} - Photo ${currentImageIndex + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                
+                {/* Navigation Arrows */}
+                {listing.photos.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+
+                    {/* Image Counter */}
+                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {currentImageIndex + 1} / {listing.photos.length}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-300 to-gray-400 text-white text-2xl font-bold">
+                {listing.lodgeName}
+              </div>
+            )}
           </div>
+
+          {/* Thumbnail Strip */}
+          {listing.photos && listing.photos.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {listing.photos.map((photo, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToImage(index)}
+                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                    currentImageIndex === index
+                      ? 'border-black scale-105'
+                      : 'border-gray-300 hover:border-gray-400 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={photo}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -232,75 +311,15 @@ export default function LodgeDetailsPage() {
         </div>
       </div>
 
-      {/* Booking Modal */}
-      <Modal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        title={bookingStep === 'confirm' ? 'Confirm Booking' : bookingStep === 'payment' ? 'Make Payment' : 'Booking Successful'}
-        size="md"
-      >
-        {bookingStep === 'confirm' && (
-          <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Lodge</span>
-                <span className="font-bold text-sm">{listing.lodgeName}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Price</span>
-                <span className="font-bold text-sm">{formatCurrency(listing.pricePerYear)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Booking Reference</span>
-                <span className="font-bold text-sm">{bookingRef}</span>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600">
-              By confirming, you agree to inspect the property before funds are released to the landlord.
-            </p>
-            <Button variant="primary" className="w-full" size="lg" onClick={handleConfirmBooking}>
-              Proceed to Payment
-            </Button>
-          </div>
-        )}
-
-        {bookingStep === 'payment' && (
-          <div className="space-y-6">
-            <div className="text-center py-6">
-              <DollarSign className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-bold mb-2">Complete Payment</h3>
-              <p className="text-gray-600 mb-6">
-                You will be redirected to Paystack to complete your payment securely.
-              </p>
-              <p className="text-2xl font-bold mb-2">{formatCurrency(listing.pricePerYear)}</p>
-              <p className="text-sm text-gray-600">Booking Ref: {bookingRef}</p>
-            </div>
-            <Button variant="primary" className="w-full" size="lg" onClick={handleMakePayment}>
-              Pay with Paystack
-            </Button>
-          </div>
-        )}
-
-        {bookingStep === 'success' && (
-          <div className="space-y-6 text-center py-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2">Payment Successful!</h3>
-              <p className="text-gray-600 mb-4">
-                Your booking has been confirmed. Please inspect the lodge physically before approving the release of funds.
-              </p>
-              <p className="text-sm font-bold">Booking Ref: {bookingRef}</p>
-            </div>
-            <Button variant="primary" className="w-full" size="lg" onClick={handleComplete}>
-              View My Bookings
-            </Button>
-          </div>
-        )}
-      </Modal>
+      {/* Payment Modal */}
+      {listing && (
+        <PaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          listing={listing}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
 
       {notification && (
         <Notification

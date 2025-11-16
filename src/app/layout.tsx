@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+'use client';
+
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -11,11 +13,6 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   fallback: ["system-ui", "arial"],
 });
 
-export const metadata: Metadata = {
-  title: "CampusNest - UNN Accommodation System",
-  description: "Connect with verified landlords and find your perfect lodge near University of Nigeria Nsukka",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={plusJakartaSans.variable}>
       <body className="antialiased">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

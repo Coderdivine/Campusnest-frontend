@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, BookOpen, HelpCircle, LogOut, Menu, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts';
 
 interface StudentLayoutProps {
   children: ReactNode;
@@ -13,15 +14,8 @@ interface StudentLayoutProps {
 export default function StudentLayout({ children }: StudentLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-
-  useEffect(() => {
-    const userData = localStorage.getItem('currentUser');
-    if (userData) {
-      setCurrentUser(JSON.parse(userData));
-    }
-  }, []);
 
   const navItems = [
     { href: '/student/dashboard', label: 'Home', icon: Home },
@@ -29,11 +23,14 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    router.push('/');
+    logout();
   };
 
-  const userHandle = currentUser?.email?.split('@')[0] || '0x0000';
+  const handleOpenProfile = () => {
+    router.push('/student/dashboard?openProfile=true');
+  };
+
+  const userHandle = user?.email?.split('@')[0] || '0x0000';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -44,7 +41,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
           <div className="flex items-center flex-shrink-0 px-6 mb-12">
             <Link href="/student/dashboard">
               <h1 className="text-2xl font-extrabold tracking-tight cursor-pointer hover:opacity-80 transition-opacity">
-                CAMPUSNEST
+                UNN CAMPUSNEST
               </h1>
             </Link>
           </div>
@@ -102,12 +99,15 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
           {/* User Info at Bottom */}
           <div className="px-6 pt-6 border-t border-gray-200 mt-6">
-            <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer">
+            <button
+              onClick={handleOpenProfile}
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 rounded-xl transition-colors cursor-pointer"
+            >
               <span className="text-sm font-medium text-gray-700">
                 @{userHandle}
               </span>
               <MoreHorizontal className="h-5 w-5 text-gray-500" />
-            </div>
+            </button>
           </div>
         </div>
       </aside>
@@ -123,7 +123,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
         </button>
         <div className="flex-1">
           <Link href="/student/dashboard">
-            <h1 className="text-xl font-extrabold tracking-tight">CAMPUSNEST</h1>
+            <h1 className="text-xl font-extrabold tracking-tight">UNN CAMPUSNEST</h1>
           </Link>
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-white animate-slide-in-right">
           <div className="flex items-center justify-between p-4 border-b">
-            <h1 className="text-xl font-extrabold tracking-tight">CAMPUSNEST</h1>
+            <h1 className="text-xl font-extrabold tracking-tight">UNN CAMPUSNEST</h1>
             <button onClick={() => setMobileMenuOpen(false)}>
               <Menu className="h-6 w-6" />
             </button>
@@ -186,14 +186,18 @@ export default function StudentLayout({ children }: StudentLayoutProps) {
 
             {/* User Info */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="flex items-center justify-between px-4">
+              <button
+                onClick={() => {
+                  handleOpenProfile();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 rounded-xl transition-colors"
+              >
                 <span className="text-sm font-medium text-gray-700">
                   @{userHandle}
                 </span>
-                <button className="p-1">
-                  <MoreHorizontal className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
+                <MoreHorizontal className="h-5 w-5 text-gray-500" />
+              </button>
             </div>
           </div>
         </div>

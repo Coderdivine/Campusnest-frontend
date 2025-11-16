@@ -8,11 +8,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Notification, useNotification } from '@/components/ui/Notification';
-import { dummyStudents, dummyLandlords } from '@/lib/dummyData';
+import { authAPI } from '@/lib/api/auth.api';
+import { useAuth } from '@/contexts';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const { notification, showNotification, clearNotification } = useNotification();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,29 +34,32 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Check dummy data for matching credentials
-      const allUsers = [...dummyStudents, ...dummyLandlords];
-      const user = allUsers.find(u => u.email === formData.email);
+    try {
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (user) {
-        // Store user data in localStorage (dummy authentication)
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showNotification('success', 'Login successful! Redirecting...');
-        
-        setTimeout(() => {
-          if (user.role === 'student') {
-            window.location.href = '/student/dashboard';
-          } else {
-            window.location.href = '/landlord/dashboard';
-          }
-        }, 1000);
-      } else {
-        showNotification('error', 'Invalid credentials. Please try again.');
-        setLoading(false);
-      }
-    }, 1000);
+      // Use context to save auth and trigger navigation
+      login(response.data.token, response.data.user);
+      
+      showNotification('success', 'Login successful! Redirecting...');
+      
+      // Navigate based on role
+      const dashboardPath = response.data.user.role === 'student' 
+        ? '/student/dashboard' 
+        : '/landlord/dashboard';
+      
+      setTimeout(() => {
+        router.push(dashboardPath);
+      }, 500);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.error || 'Invalid credentials. Please try again.';
+      showNotification('error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,7 +68,7 @@ export default function LoginPage() {
       <div className="mb-12 animate-fade-in">
         <Link href="/">
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-center cursor-pointer hover:opacity-70 transition-opacity">
-            CAMPUSNEST
+            UNN CAMPUSNEST
           </h1>
         </Link>
       </div>

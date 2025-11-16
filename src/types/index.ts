@@ -12,6 +12,7 @@ export interface User {
 
 export interface Student extends User {
   role: 'student';
+  registrationNumber: string;
   department: string;
   level: string;
   studentIdCard?: string;
@@ -26,6 +27,7 @@ export interface Landlord extends User {
   state: string;
   lga: string;
   identificationType: string;
+  identificationNumber: string;
   identificationDocument?: string;
   proofOfResidence?: string;
   whatsappNumber: string;
@@ -34,6 +36,7 @@ export interface Landlord extends User {
 // Listing types
 export interface Listing {
   id: string;
+  listing_id?: string; // Backend returns listing_id
   landlordId: string;
   landlord?: Landlord;
   lodgeName: string;
@@ -52,7 +55,7 @@ export interface Listing {
 
 // Purchase types
 export interface Purchase {
-  id: string;
+  purchase_id: string;
   studentId: string;
   student?: Student;
   landlordId: string;
@@ -66,6 +69,7 @@ export interface Purchase {
   paymentDate?: string;
   inspectionDate?: string;
   releaseDate?: string;
+  paystackReference?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,6 +89,7 @@ export interface StudentSignupData {
   email: string;
   password: string;
   phoneNumber: string;
+  registrationNumber: string;
   department: string;
   level: string;
   profilePhoto?: File;
@@ -100,6 +105,7 @@ export interface LandlordSignupData {
   state: string;
   lga: string;
   identificationType: string;
+  identificationNumber: string;
   identificationDocument?: File;
   proofOfResidence?: File;
   profilePhoto?: File;

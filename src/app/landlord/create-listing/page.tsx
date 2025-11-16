@@ -10,8 +10,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { FormSkeleton } from '@/components/ui/Skeleton';
 import { Notification, useNotification } from '@/components/ui/Notification';
 import { UNN_AREAS } from '@/lib/constants';
+import { listingAPI } from '@/lib/api/listing.api';
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -25,6 +28,7 @@ export default function CreateListingPage() {
     distanceFromUNN: '',
     description: '',
   });
+  const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
@@ -36,17 +40,50 @@ export default function CreateListingPage() {
     }));
   };
 
+  const handleImagesChange = (images: string[]) => {
+    setPhotos(images);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Validate required fields
+      if (!formData.lodgeName || !formData.lodgeAddress || !formData.pricePerYear || 
+          !formData.availableSlots || !formData.distanceFromUNN || !formData.description) {
+        showNotification('error', 'Please fill in all required fields');
+        return;
+      }
+
+      // Validate at least one image
+      if (photos.length === 0) {
+        showNotification('error', 'Please upload at least one image of your property');
+        return;
+      }
+
+      const listingData = {
+        lodgeName: formData.lodgeName,
+        lodgeAddress: formData.lodgeAddress,
+        area: formData.area,
+        pricePerYear: parseInt(formData.pricePerYear),
+        availableSlots: parseInt(formData.availableSlots),
+        distanceFromUNN: parseFloat(formData.distanceFromUNN),
+        description: formData.description,
+        photos: photos,
+        status: 'active',
+      };
+
+      await listingAPI.create(listingData as any);
       showNotification('success', 'Listing created successfully!');
       setTimeout(() => {
         router.push('/landlord/listings');
       }, 1500);
-    }, 1000);
+    } catch (error: any) {
+      showNotification('error', error?.response?.data?.message || error?.response?.data?.error || 'Failed to create listing');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -140,6 +177,22 @@ export default function CreateListingPage() {
                 rows={6}
                 required
               />
+
+              {/* Image Upload Section */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Property Images *
+                </label>
+                <p className="text-sm text-gray-500 mb-3">
+                  Upload images of your property. The first image will be the cover photo.
+                </p>
+                <ImageUpload
+                  images={photos}
+                  onChange={handleImagesChange}
+                  maxImages={10}
+                  maxSizeMB={5}
+                />
+              </div>
 
               <div className="pt-4 flex gap-4">
                 <Button

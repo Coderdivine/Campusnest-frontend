@@ -9,16 +9,19 @@ import StudentLayout from '@/components/layouts/StudentLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 import { Notification, useNotification } from '@/components/ui/Notification';
 import { Student, Purchase } from '@/types';
-import { getStudentPurchases } from '@/lib/dummyData';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, Phone, MessageCircle, CheckCircle, XCircle, AlertTriangle, DollarSign } from 'lucide-react';
+import { authAPI } from '@/lib/api/auth.api';
+import { purchaseAPI } from '@/lib/api/purchase.api';
 
 export default function StudentBookingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<Student | null>(null);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
   const [isInspectionModalOpen, setIsInspectionModalOpen] = useState(false);
   const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
@@ -27,22 +30,27 @@ export default function StudentBookingsPage() {
   const { notification, showNotification, clearNotification } = useNotification();
 
   useEffect(() => {
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      router.push('/login');
-      return;
-    }
-
-    const userData = JSON.parse(currentUser) as Student;
-    if (userData.role !== 'student') {
-      router.push('/login');
-      return;
-    }
-
-    setUser(userData);
-    const userPurchases = getStudentPurchases(userData.id);
-    setPurchases(userPurchases);
+    loadData();
   }, [router]);
+
+  const loadData = async () => {
+    try {
+      const userData = await authAPI.getCurrentUser();
+      if (userData.role !== 'student') {
+        router.push('/login');
+        return;
+      }
+      setUser(userData as Student);
+      
+      const response = await purchaseAPI.getMyPurchases();
+      setPurchases(response.data as Purchase[]);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const hasBankDetails = () => {
     return user?.bankName && user?.accountNumber && user?.accountName;
@@ -70,10 +78,19 @@ export default function StudentBookingsPage() {
     setIsReleaseModalOpen(true);
   };
 
-  const handleConfirmRelease = () => {
-    if (selectedPurchase && actionType === 'release') {
+  const handleConfirmRelease = async () => {
+    if (!selectedPurchase || actionType !== 'release') return;
+
+    try {
+      if (!selectedPurchase.purchase_id) {
+        throw new Error('Invalid purchase ID');
+      }
+      
+      await purchaseAPI.requestRelease(selectedPurchase.purchase_id);
+      
+      // Update local state
       const updatedPurchases = purchases.map(p =>
-        p.id === selectedPurchase.id
+        p.purchase_id === selectedPurchase.purchase_id
           ? { ...p, paymentStatus: 'Released' as const, inspectionStatus: 'Approved' as const }
           : p
       );
@@ -82,13 +99,24 @@ export default function StudentBookingsPage() {
       setSelectedPurchase(null);
       setActionType(null);
       showNotification('success', 'Funds released to landlord successfully! Enjoy your new lodge.');
+    } catch (error: any) {
+      showNotification('error', error?.response?.data?.message || error?.response?.data?.error || 'Failed to release funds');
     }
   };
 
-  const handleConfirmRefund = () => {
-    if (selectedPurchase && actionType === 'refund') {
+  const handleConfirmRefund = async () => {
+    if (!selectedPurchase || actionType !== 'refund') return;
+
+    try {
+      if (!selectedPurchase.purchase_id) {
+        throw new Error('Invalid purchase ID');
+      }
+      
+      await purchaseAPI.requestRefund(selectedPurchase.purchase_id);
+      
+      // Update local state
       const updatedPurchases = purchases.map(p =>
-        p.id === selectedPurchase.id
+        p.purchase_id === selectedPurchase.purchase_id
           ? { ...p, paymentStatus: 'Refunded' as const, inspectionStatus: 'Rejected' as const }
           : p
       );
@@ -97,6 +125,8 @@ export default function StudentBookingsPage() {
       setSelectedPurchase(null);
       setActionType(null);
       showNotification('info', 'Refund request submitted. Funds will be returned to your account within 3-5 business days.');
+    } catch (error: any) {
+      showNotification('error', error?.response?.data?.message || error?.response?.data?.error || 'Failed to request refund');
     }
   };
 
@@ -107,9 +137,17 @@ export default function StudentBookingsPage() {
 
   if (!user) return null;
 
+  if (loading) {
+    return (
+      <StudentLayout>
+        <TableSkeleton rows={8} />
+      </StudentLayout>
+    );
+  }
+
   return (
     <StudentLayout>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-extrabold uppercase tracking-wide mb-1">
@@ -119,6 +157,22 @@ export default function StudentBookingsPage() {
             View and manage your lodge bookings
           </p>
         </div>
+
+        {/* Workflow Info Banner */}
+        {purchases.some(p => p.paymentStatus === 'Paid' && p.inspectionStatus === 'Pending') && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <div className="flex gap-3">
+              <AlertTriangle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-blue-900 mb-1">Inspection Required</p>
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  <strong>How it works:</strong> After payment, inspect the lodge physically. If satisfied, release funds to the landlord. 
+                  If not satisfied, request a refund (requires bank details). Once you make a decision, it cannot be reversed.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Bookings List */}
         {purchases.length === 0 ? (
