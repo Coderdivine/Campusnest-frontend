@@ -344,7 +344,7 @@ export default function StudentDashboardPage() {
                   <tbody>
                     {filteredPurchases.map((purchase, index) => (
                       <tr 
-                        key={purchase.id}
+                        key={purchase.purchase_id}
                         className={cn(
                           'border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer',
                           index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'

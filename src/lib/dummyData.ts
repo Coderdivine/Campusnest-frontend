@@ -246,7 +246,7 @@ export const dummyListings: Listing[] = [
 // Dummy Purchases
 export const dummyPurchases: Purchase[] = [
   {
-    id: 'purchase-1',
+    purchase_id: 'purchase-1',
     studentId: 'student-1',
     landlordId: 'landlord-1',
     listingId: 'listing-1',
@@ -261,7 +261,7 @@ export const dummyPurchases: Purchase[] = [
     updatedAt: '2024-10-12T11:00:00Z',
   },
   {
-    id: 'purchase-2',
+    purchase_id: 'purchase-2',
     studentId: 'student-2',
     landlordId: 'landlord-2',
     listingId: 'listing-2',
@@ -289,7 +289,7 @@ export const getListingWithLandlord = (listingId: string): Listing | undefined =
 
 // Helper function to get purchase with full data
 export const getPurchaseWithDetails = (purchaseId: string): Purchase | undefined => {
-  const purchase = dummyPurchases.find(p => p.id === purchaseId);
+  const purchase = dummyPurchases.find(p => p.purchase_id === purchaseId);
   if (!purchase) return undefined;
 
   const student = dummyStudents.find(s => s.id === purchase.studentId);

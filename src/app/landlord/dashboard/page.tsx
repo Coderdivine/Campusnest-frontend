@@ -183,7 +183,7 @@ export default function LandlordDashboardPage() {
                   <tbody>
                     {filteredPurchases.map((purchase, index) => (
                       <tr 
-                        key={purchase.id}
+                        key={purchase.purchase_id}
                         className={cn(
                           'border-b border-gray-100 hover:bg-gray-50 transition-colors',
                           index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'

@@ -197,7 +197,7 @@ export default function StudentBookingsPage() {
         ) : (
           <div className="space-y-5">
             {purchases.map((purchase) => (
-              <div key={purchase.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div key={purchase.purchase_id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <h3 className="text-base font-bold">{purchase.listing?.lodgeName}</h3>
                   <span
