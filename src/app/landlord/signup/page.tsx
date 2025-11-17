@@ -10,10 +10,12 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Notification, useNotification } from '@/components/ui/Notification';
 import { ID_TYPES } from '@/lib/constants';
-import { authAPI } from '@/utils/auth.api';
+import { authAPI } from '@/lib/api/auth.api';
+import { useAuth } from '@/contexts';
 
 export default function LandlordSignupPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const { notification, showNotification, clearNotification } = useNotification();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -88,8 +90,8 @@ export default function LandlordSignupPage() {
         identificationNumber: formData.identificationNumber,
       });
 
-      // Save auth data
-      authAPI.saveAuth(response.data.token, response.data.user);
+      // Use context to save auth and trigger navigation
+      login(response.data.token, response.data.user);
       
       showNotification('success', 'Account created successfully! Redirecting...');
 

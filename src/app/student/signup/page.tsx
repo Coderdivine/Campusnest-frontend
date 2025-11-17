@@ -8,10 +8,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Notification, useNotification } from '@/components/ui/Notification';
-import { authAPI } from '@/utils/auth.api';
+import { authAPI } from '@/lib/api/auth.api';
+import { useAuth } from '@/contexts';
 
 export default function StudentSignupPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const { notification, showNotification, clearNotification } = useNotification();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -77,8 +79,8 @@ export default function StudentSignupPage() {
         level: formData.level,
       });
 
-      // Save auth data
-      authAPI.saveAuth(response.data.token, response.data.user);
+      // Use context to save auth and trigger navigation
+      login(response.data.token, response.data.user);
       
       showNotification('success', 'Account created successfully! Redirecting...');
 

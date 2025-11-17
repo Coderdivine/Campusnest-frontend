@@ -255,89 +255,93 @@ export default function LandlordLayout({ children }: LandlordLayoutProps) {
         title="EDIT PROFILE"
         position={typeof window !== 'undefined' && window.innerWidth < 768 ? 'bottom' : 'right'}
       >
-        <div className="space-y-8">
-          <p className="text-sm text-gray-500 -mt-2">Make changes to your profile information.</p>
+        <div className="h-full flex flex-col">
+          <p className="text-sm text-gray-500 mb-6">Make changes to your profile information.</p>
           
-          <div className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={userHandle}
-                disabled
-                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-base font-medium text-gray-400 cursor-not-allowed"
-              />
-            </div>
+          <div className="flex-1 overflow-y-auto scrollbar-hide">
+            <div className="space-y-6 pr-2">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={userHandle}
+                  disabled
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-base font-medium text-gray-400 cursor-not-allowed"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                value={profileForm.fullName}
-                onChange={(e) => setProfileForm(prev => ({ ...prev, fullName: e.target.value }))}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={profileForm.fullName}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, fullName: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={landlordUser?.email || ''}
-                disabled
-                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-base font-medium text-gray-400 cursor-not-allowed"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={landlordUser?.email || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-base font-medium text-gray-400 cursor-not-allowed"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={profileForm.phoneNumber}
-                onChange={(e) => setProfileForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  value={profileForm.phoneNumber}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                WhatsApp Number
-              </label>
-              <input
-                type="tel"
-                value={profileForm.whatsappNumber}
-                onChange={(e) => setProfileForm(prev => ({ ...prev, whatsappNumber: e.target.value }))}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  value={profileForm.whatsappNumber}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, whatsappNumber: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
-                Residential Address
-              </label>
-              <textarea
-                value={profileForm.residentialAddress}
-                onChange={(e) => setProfileForm(prev => ({ ...prev, residentialAddress: e.target.value }))}
-                rows={3}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all resize-none"
-              />
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+                  Residential Address
+                </label>
+                <textarea
+                  value={profileForm.residentialAddress}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, residentialAddress: e.target.value }))}
+                  rows={3}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-base font-medium focus:border-black focus:ring-2 focus:ring-black transition-all resize-none"
+                />
+              </div>
             </div>
           </div>
 
-          <button
-            onClick={handleSaveProfile}
-            className="w-full bg-black text-white font-bold uppercase tracking-wide px-6 py-4 rounded-full hover:bg-gray-800 active:bg-gray-900 transition-all text-sm"
-          >
-            SAVE CHANGES
-          </button>
+          <div className="flex-shrink-0 pt-6 mt-6 border-t border-gray-200">
+            <button
+              onClick={handleSaveProfile}
+              className="w-full bg-black text-white font-bold uppercase tracking-wide px-6 py-4 rounded-full hover:bg-gray-800 active:bg-gray-900 transition-all text-sm"
+            >
+              SAVE CHANGES
+            </button>
+          </div>
         </div>
       </Modal>
 
